@@ -5,7 +5,9 @@ One call trains on ``n`` respondent-question rows and writes two adapters:
 ``fully_trained`` (the final step). The loss is the shifted cross-entropy on
 the answer-letter tokens and EOS. Prompt and padding positions are masked.
 Training and validation use that same loss. Checkpoints every 500 steps let an
-interrupted run resume.
+interrupted run resume. Under ``torchrun`` the gradient accumulation is divided
+by the number of processes, so the effective batch size and the number of
+optimizer steps do not change.
 """
 
 from __future__ import annotations
@@ -52,6 +54,8 @@ WARMUP_RATIO = 0.03
 DEFAULT_EPOCHS = 3
 SAVE_STEPS = 500
 COLLISION_CELLS_PER_ITEM = 40
+WORLD_SIZE = int(os.environ.get("WORLD_SIZE", "1"))
+IS_MAIN_PROCESS = int(os.environ.get("RANK", "0")) == 0
 
 
 class SurveyPairDataset(torch.utils.data.Dataset):
@@ -203,6 +207,8 @@ class BestAdapterCallback(TrainerCallback):
             model: Model to save.
             **kwargs: Other callback arguments. Unused.
         """
+        if not state.is_world_process_zero:
+            return
         if metrics is None or "eval_loss" not in metrics:
             return
         if metrics["eval_loss"] < self.best_loss:
@@ -246,6 +252,8 @@ class CollisionEvalCallback(TrainerCallback):
             model: Model being evaluated.
             **kwargs: Other callback arguments. Unused.
         """
+        if not state.is_world_process_zero:
+            return
         prev_side = self.tokenizer.padding_side
         was_training = model.training
         self.tokenizer.padding_side = "left"
@@ -444,6 +452,11 @@ def run_finetune(
     grad_accum = model_cfg["grad_accum"]
     val_subset = model_cfg["val_subset"]
     n_evals = model_cfg["n_evals"]
+    assert grad_accum % WORLD_SIZE == 0, (
+        f"grad_accum={grad_accum} must be divisible by WORLD_SIZE={WORLD_SIZE} "
+        "to keep the effective batch size unchanged"
+    )
+    grad_accum //= WORLD_SIZE
 
     # --- config ---
     with item_config_path(dataset).open() as handle:
@@ -455,6 +468,8 @@ def run_finetune(
     run_dir.mkdir(parents=True, exist_ok=True)
     entity, project = require_wandb_env()
     Path(os.environ["WANDB_DIR"]).mkdir(parents=True, exist_ok=True)
+    if not IS_MAIN_PROCESS:
+        os.environ["WANDB_MODE"] = "disabled"
     wandb.init(
         entity=entity,
         project=project,
@@ -514,7 +529,7 @@ def run_finetune(
     pair_eval_df = subsample_eval_cells(pair_eval_df, seed)
 
     # --- model fitting ---
-    effective_batch = per_device_batch * grad_accum
+    effective_batch = per_device_batch * grad_accum * WORLD_SIZE
     steps_per_epoch = int(np.ceil(len(train_dataset) / effective_batch))
     full_steps = epochs * steps_per_epoch
     if max_steps > 0:
@@ -525,7 +540,9 @@ def run_finetune(
     print(
         f"n_train={len(train_dataset)}  n_val={len(val_dataset)}  "
         f"steps_per_epoch={steps_per_epoch}  epochs={epochs}  "
-        f"planned_steps={planned_steps}  max_steps_override={max_steps}",
+        f"planned_steps={planned_steps}  max_steps_override={max_steps}  "
+        f"world_size={WORLD_SIZE}  grad_accum={grad_accum}  "
+        f"effective_batch={effective_batch}",
         flush=True,
     )
     training_args = TrainingArguments(
@@ -547,6 +564,7 @@ def run_finetune(
         gradient_checkpointing=True,
         gradient_checkpointing_kwargs={"use_reentrant": False},
         bf16=True,
+        ddp_find_unused_parameters=False,
         report_to=["wandb"],
         run_name=name,
         seed=seed,
@@ -572,6 +590,8 @@ def run_finetune(
             flush=True,
         )
     trainer.train(resume_from_checkpoint=resume_from)
+    if not trainer.is_world_process_zero():
+        return
 
     # --- data export ---
     model.save_pretrained(full_dir)

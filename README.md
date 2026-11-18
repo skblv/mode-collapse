@@ -32,7 +32,7 @@ writes Figures 1 to 4 and the appendix bound check to `outputs/figures/` from th
 
 Run the scripts from the repository root, in the order of their numbers. Inputs are read from `data/` and outputs are written to `outputs/`; set `MODE_COLLAPSE_DATA_DIR` and `MODE_COLLAPSE_OUTPUT_DIR` to use other locations. The Gemma models are gated on Hugging Face: accept their licenses and run `hf auth login` first.
 
-`--model` takes `google/gemma-2-2b-it`, `Qwen/Qwen3.5-2B`, `Qwen/Qwen3.5-4B` or `google/gemma-3-4b-it`.
+`--model` takes `google/gemma-2-2b-it`, `Qwen/Qwen3.5-2B`, `Qwen/Qwen3.5-4B` or `google/gemma-3-4b-it`. To fine-tune on several GPUs, start `s02_finetune.py` (surveys) or `s03_finetune.py` (CodeNet) with `uv run torchrun --standalone --nproc-per-node <gpus>` instead of `uv run python`; the effective batch size stays the same.
 
 ### Synthetic languages
 
