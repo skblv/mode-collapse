@@ -5,16 +5,16 @@ description = "Code for the paper Fine-Tuning Fixes Mode Collapse and Over-Dispe
 readme = "README.md"
 requires-python = ">=3.12,<3.13"
 dependencies = [
-    "accelerate",
-    "matplotlib",
-    "numpy",
-    "pandas",
-    "peft>=0.19,<0.20",
-    "scipy",
-    "torch",
-    "tqdm",
-    "transformers>=5.2,<5.15",
-    "wandb",
+    "accelerate==1.14.0",
+    "matplotlib==3.11.0",
+    "numpy==2.5.0",
+    "pandas==3.0.3",
+    "peft==0.19.1",
+    "scipy==1.17.1",
+    "torch==2.12.1",
+    "tqdm==4.68.3",
+    "transformers==5.12.1",
+    "wandb==0.28.0",
 ]
 
 [dependency-groups]
@@ -27,9 +27,8 @@ dev = [
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
-# Transformers 5.2 adds the Qwen3.5 classes and 5.15 removes warmup_ratio.
 [tool.uv]
-exclude-newer = "2026-07-20T00:00:00Z"
+exclude-newer = "2026-06-28T00:00:00Z"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/mode_collapse"]
