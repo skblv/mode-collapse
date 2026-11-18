@@ -1,0 +1,104 @@
+{
+  "seed": 42,
+  "seeds_per_level": 100,
+  "state": "initialization",
+  "note": "Initialization decomposition, before fine-tuning on the target language. diffuse = random initialization; mode_aligned = after the Zipf-head prior injection. Terms are C(p)-normalized and averaged over the common contexts. Models are float32 with float64 collision math.",
+  "experiments": [
+    {
+      "name": "diffuse",
+      "K": 1024,
+      "param_count": 6135168,
+      "param_millions": 6.135,
+      "n_seeds": 100,
+      "n_common": 2000,
+      "var_term": 0.06822635614343787,
+      "bias2_term": 0.8260950343533363,
+      "cross_term": -1.650506601212524,
+      "cross_sign": "negative",
+      "derived": -0.7561852107157498,
+      "measured": -0.7561852107157496,
+      "identity_residual": 2.220446049250313e-16,
+      "ci_95": {
+        "bootstrap_B": 2000,
+        "bootstrap_unit": "common_contexts",
+        "bootstrap_max_identity_residual": 4.440892098500626e-16,
+        "var_term": {
+          "lo": 0.06722097617036168,
+          "hi": 0.06930640606270927
+        },
+        "bias2_term": {
+          "lo": 0.8233440115713263,
+          "hi": 0.8286474879639789
+        },
+        "cross_term": {
+          "lo": -1.6556341200499858,
+          "hi": -1.6449808876698988
+        },
+        "measured": {
+          "lo": -0.7597612035951349,
+          "hi": -0.7523262137772485
+        },
+        "qstar_dot_q0": {
+          "lo": 0.0009756712314861979,
+          "hi": 0.0009761025555076654
+        },
+        "c_qstar": {
+          "lo": 0.006673274550234152,
+          "hi": 0.0072168308390935495
+        }
+      },
+      "qstar_dot_q0_mean": 0.0009758901630606498,
+      "c_qstar_mean": 0.006934455238243899,
+      "overlap_norm_mean_qq0_over_cqstar": 0.17474669939373808,
+      "qstar_dot_q0_gt_c_qstar": false
+    },
+    {
+      "name": "mode_aligned",
+      "K": 50000,
+      "param_count": 27974144,
+      "param_millions": 27.974,
+      "n_seeds": 100,
+      "n_common": 256,
+      "var_term": 0.0011811160404433007,
+      "bias2_term": 1.8290771828266656,
+      "cross_term": 2.41300680964705,
+      "cross_sign": "positive",
+      "derived": 4.243265108514159,
+      "measured": 4.2432651085141595,
+      "identity_residual": 8.881784197001252e-16,
+      "ci_95": {
+        "bootstrap_B": 2000,
+        "bootstrap_unit": "common_contexts",
+        "bootstrap_max_identity_residual": 1.7763568394002505e-15,
+        "var_term": {
+          "lo": 0.001140781312293414,
+          "hi": 0.0012221074271628384
+        },
+        "bias2_term": {
+          "lo": 1.7204095798255095,
+          "hi": 1.9410934559361699
+        },
+        "cross_term": {
+          "lo": 2.344667092520713,
+          "hi": 2.4792763562063183
+        },
+        "measured": {
+          "lo": 4.068083122869855,
+          "hi": 4.418726367489704
+        },
+        "qstar_dot_q0": {
+          "lo": 0.04932796614569023,
+          "hi": 0.05110915594207187
+        },
+        "c_qstar": {
+          "lo": 0.022799680963737246,
+          "hi": 0.024346961606156556
+        }
+      },
+      "qstar_dot_q0_mean": 0.05017444546040775,
+      "c_qstar_mean": 0.023531610256098144,
+      "overlap_norm_mean_qq0_over_cqstar": 2.2065034048235255,
+      "qstar_dot_q0_gt_c_qstar": true
+    }
+  ]
+}
